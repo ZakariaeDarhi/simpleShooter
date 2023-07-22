@@ -214,7 +214,7 @@ function update() {
     enemies.forEach((enemy, Eindex) => {
         enemy.move();
 
-        const distance = Math.hypot(player.x + player.size / 2 - enemy.x, player.y + player.size / 2 - enemy.y)
+        const distance = Math.hypot(player.x + player.size / 3 - enemy.x, player.y + player.size / 3 - enemy.y)
 
         if (distance - enemy.radius - player.size / 2 < 1) {
             stop()
