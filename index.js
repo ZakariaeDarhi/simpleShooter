@@ -79,7 +79,27 @@ class Bullet {
         this.x += this.velocity.x * this.speed;
         this.y += this.velocity.y * this.speed;
     }
+    detectWalls() {
+        // Left wall
+        if (this.x < 0) {
+            this.x = 0;
+        }
 
+        // Right Wall
+        if (this.x + this.size > canvas.width) {
+            this.x = canvas.width - this.size;
+        }
+
+        // Top wall
+        if (this.y < 0) {
+            this.y = 0;
+        }
+
+        // Bottom Wall
+        if (this.y + this.size > canvas.height) {
+            this.y = canvas.height - this.size;
+        }
+    }
 }
 
 class Enemy {
@@ -188,18 +208,34 @@ window.addEventListener('click', (e) => {
 });
 
 
-
+let updateID;
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    updateID = requestAnimationFrame(update)
     player.move();
     bullets.forEach((bullet) => {
         bullet.move();
     })
-    enemies.forEach((enemie) => {
-        enemie.move();
-    })
-    requestAnimationFrame(update)
-}
+    enemies.forEach((enemy, Eindex) => {
+        enemy.move();
 
-spawnEnemies()
-update()
+        const distance = Math.hypot(player.x + player.size/2 - enemy.x, player.y + player.size/2 - enemy.y)
+        
+        if (distance - enemy.radius - player.size/2 < 1) {
+            cancelAnimationFrame(updateID)
+        }
+        bullets.forEach((bullet, Bindex) => {
+            const distance = Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y)
+            if (distance - enemy.radius - bullet.radius < 1) {
+                setTimeout(()=>{
+                    enemies.splice(Eindex, 1)
+                    bullets.splice(Bindex, 1)
+                },0)
+            }
+        })
+    })
+}
+function start() {
+    update()
+    spawnEnemies()
+}
