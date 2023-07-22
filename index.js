@@ -144,9 +144,9 @@ function spawnEnemies() {
         }
 
         enemies.push(
-            new Enemy(x, y, radius, 1, color, velocity)
+            new Enemy(x, y, radius, 2, color, velocity)
         )
-    }, 1000)
+    }, 800)
 }
 
 document.addEventListener('keydown', (e) => {
@@ -229,6 +229,8 @@ function update() {
     })
 }
 function start() {
+    cancelAnimationFrame(updateID)
+    clearInterval(id);
     player = new Player(canvas.width / 2 - 30, canvas.height / 2 - 30, 30, 3, 0, 0)
     bullets = [];
     enemies = [];
