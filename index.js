@@ -80,25 +80,14 @@ class Bullet {
         this.y += this.velocity.y * this.speed;
     }
     detectWalls() {
-        // Left wall
-        if (this.x < 0) {
-            this.x = 0;
+        if (this.x + this.radius < 0 ||
+            this.x - this.radius > canvas.width ||
+            this.y + this.radius < 0 ||
+            this.y - this.radius > canvas.height
+        ) {
+            return true;
         }
-
-        // Right Wall
-        if (this.x + this.size > canvas.width) {
-            this.x = canvas.width - this.size;
-        }
-
-        // Top wall
-        if (this.y < 0) {
-            this.y = 0;
-        }
-
-        // Bottom Wall
-        if (this.y + this.size > canvas.height) {
-            this.y = canvas.height - this.size;
-        }
+        return false;
     }
 }
 
@@ -134,10 +123,11 @@ class Enemy {
 
 }
 
-const player = new Player(canvas.width / 2 - 30, canvas.height / 2 - 30, 30, 3, 0, 0)
-const bullets = [];
-const enemies = []
+let player;
+let bullets;
+let enemies;
 let id;
+let points = 0;
 
 function spawnEnemies() {
     id = setInterval(() => {
@@ -213,29 +203,56 @@ function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     updateID = requestAnimationFrame(update)
     player.move();
-    bullets.forEach((bullet) => {
+    bullets.forEach((bullet, index) => {
         bullet.move();
+        if (bullet.detectWalls()) {
+            setTimeout(() => {
+                bullets.splice(index, 1)
+            }, 0)
+        }
     })
     enemies.forEach((enemy, Eindex) => {
         enemy.move();
 
-        const distance = Math.hypot(player.x + player.size/2 - enemy.x, player.y + player.size/2 - enemy.y)
-        
-        if (distance - enemy.radius - player.size/2 < 1) {
-            cancelAnimationFrame(updateID)
+        const distance = Math.hypot(player.x + player.size / 2 - enemy.x, player.y + player.size / 2 - enemy.y)
+
+        if (distance - enemy.radius - player.size / 2 < 1) {
+            stop()
         }
         bullets.forEach((bullet, Bindex) => {
             const distance = Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y)
             if (distance - enemy.radius - bullet.radius < 1) {
-                setTimeout(()=>{
+                setTimeout(() => {
                     enemies.splice(Eindex, 1)
                     bullets.splice(Bindex, 1)
-                },0)
+                    points += 1;
+                }, 0)
             }
         })
     })
 }
 function start() {
+    player = new Player(canvas.width / 2 - 30, canvas.height / 2 - 30, 30, 3, 0, 0)
+    bullets = [];
+    enemies = [];
+    points = 0;
     update()
     spawnEnemies()
 }
+async function stop() {
+    await clearInterval(id);
+    await ctx.clearRect(0, 0, canvas.width, canvas.height);
+    await cancelAnimationFrame(updateID)
+    player = {}
+    bullets = []
+    enemies = []
+    gameover()
+}
+function gameover() {
+    ctx.beginPath();
+    ctx.font = '60px Tahoma';
+    ctx.fillText('GAME OVER', 140, 200);
+    ctx.font = '40px Tahoma';
+    ctx.fillText('POINTS: '+points, 220, 260);
+}
+
